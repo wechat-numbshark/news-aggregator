@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全球新闻聚合</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3250;
+    --text: #e2e8f0;
+    --text2: #8892aa;
+    --green: #22c55e;
+    --red: #ef4444;
+    --yellow: #f59e0b;
+    --blue: #3b82f6;
+    --purple: #a855f7;
+    --cyan: #06b6d4;
+  }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, 'PingFang SC', sans-serif; min-height: 100vh; }
+
+  /* ── 顶部 ── */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 52px;
+  }
+  .header h1 { font-size: 16px; font-weight: 700; margin-right: 28px; white-space: nowrap; }
+
+  /* ── Tab 导航 ── */
+  .nav-tabs { display: flex; gap: 0; height: 100%; }
+  .tab-btn {
+    height: 100%;
+    padding: 0 18px;
+    border: none;
+    background: transparent;
+    color: var(--text2);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+  /* ── 采集按钮 ── */
+  .btn-collect {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 16px;
+    background: var(--blue);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-collect:hover { background: #2563eb; }
+  .btn-collect:disabled { opacity: .5; cursor: not-allowed; }
+  .collect-status { font-size: 12px; color: var(--text2); }
+
+  /* ── Tab 内容 ── */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ════════════════════════════════════
+     文章面板
+  ════════════════════════════════════ */
+  .articles-layout { display: flex; height: calc(100vh - 52px); }
+
+  /* 左侧筛选栏 */
+  .filter-sidebar {
+    width: 200px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--border);
+    padding: 16px 12px;
+    overflow-y: auto;
+    background: var(--surface);
+  }
+  .filter-section { margin-bottom: 20px; }
+  .filter-title { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+  .filter-opt {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: none;
+    background: transparent;
+    color: var(--text2);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .1s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .filter-opt:hover { background: var(--surface2); color: var(--text); }
+  .filter-opt.active { background: rgba(59,130,246,.15); color: var(--blue); font-weight: 600; }
+
+  /* 汇总卡片 */
+  .summary-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 16px 16px 0;
+  }
+  .sum-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .sum-card .val { font-size: 22px; font-weight: 700; }
+  .sum-card .lbl { font-size: 11px; color: var(--text2); margin-top: 2px; }
+
+  /* 主内容区 */
+  .articles-main { flex: 1; overflow-y: auto; padding: 16px; }
+
+  /* 搜索 + 筛选条 */
+  .articles-toolbar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .search-input {
+    flex: 1;
+    min-width: 160px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+  }
+  .search-input:focus { border-color: var(--blue); }
+  .search-input::placeholder { color: var(--text2); }
+
+  .chip-group { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .chip:hover { color: var(--text); border-color: #4b5563; }
+  .chip.active { background: rgba(59,130,246,.15); color: var(--blue); border-color: rgba(59,130,246,.5); }
+
+  /* 文章卡片 */
+  .article-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    transition: border-color .15s;
+  }
+  .article-card:hover { border-color: #3d4470; }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+  .source-flag { font-size: 16px; }
+  .source-name { font-size: 12px; color: var(--text2); font-weight: 600; }
+  .lang-tag {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .author-tag { font-size: 11px; color: var(--text2); }
+  .pub-time { font-size: 11px; color: var(--text2); margin-left: auto; }
+
+  .card-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+    margin-bottom: 4px;
+  }
+  .card-title a { color: var(--text); text-decoration: none; }
+  .card-title a:hover { color: var(--blue); }
+  .card-title-zh { font-size: 13px; color: var(--text2); line-height: 1.5; margin-bottom: 6px; }
+  .card-summary { font-size: 12px; color: var(--text2); line-height: 1.6; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+  .card-footer { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .cat-tag {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: rgba(59,130,246,.12);
+    color: #93c5fd;
+    font-weight: 500;
+  }
+  .importance-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+  }
+  .imp-high { background: rgba(239,68,68,.15); color: var(--red); }
+  .imp-mid  { background: rgba(245,158,11,.15); color: var(--yellow); }
+  .imp-low  { background: var(--surface2); color: var(--text2); }
+  .not-translated { font-size: 11px; color: var(--text2); background: var(--surface2); border: 1px dashed var(--border); border-radius: 4px; padding: 2px 8px; }
+
+  /* 分页 */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 0;
+  }
+  .page-btn {
+    padding: 6px 14px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text2);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .page-btn:hover { color: var(--text); border-color: #4b5563; }
+  .page-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }
+  .page-btn:disabled { opacity: .4; cursor: not-allowed; }
+  .page-info { font-size: 13px; color: var(--text2); }
+
+  /* 空态 / 加载 */
+  .empty { text-align: center; padding: 60px; color: var(--text2); font-size: 14px; }
+  .loading-spin { display: inline-block; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ════════════════════════════════════
+     今日文章 — 日期导航
+  ════════════════════════════════════ */
+  .daily-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .nav-arrow {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-size: 18px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+    flex-shrink: 0;
+  }
+  .nav-arrow:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
+  .nav-arrow:disabled { opacity: .3; cursor: not-allowed; }
+  .daily-date-block { text-align: center; min-width: 160px; }
+  .daily-date-main {
+    font-size: 18px; font-weight: 700; color: var(--text); line-height: 1.2;
+  }
+  .daily-date-sub { font-size: 12px; color: var(--text2); margin-top: 2px; }
+
+  .btn-today {
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--blue);
+    background: rgba(59,130,246,.1);
+    color: var(--blue);
+    font-size: 12px; font-weight: 700;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-today:hover { background: rgba(59,130,246,.2); }
+  .btn-today.hidden { display: none; }
+
+  /* 日历弹窗 */
+  .cal-wrap { position: relative; }
+  .btn-cal {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    font-size: 12px; font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-cal:hover { color: var(--text); border-color: #4b5563; }
+  .cal-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    z-index: 200;
+    min-width: 240px;
+    box-shadow: 0 8px 32px rgba(0,0,0,.4);
+  }
+  .cal-dropdown.open { display: block; }
+  .cal-dropdown input[type="date"] {
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+    margin-bottom: 10px;
+  }
+  .cal-has-dates { display: flex; flex-wrap: wrap; gap: 4px; }
+  .has-date-btn {
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    font-size: 11px;
+    cursor: pointer;
+    transition: all .1s;
+  }
+  .has-date-btn:hover { color: var(--blue); border-color: var(--blue); }
+  .has-date-btn.today { border-color: var(--green); color: var(--green); }
+
+  /* 当日统计条 */
+  .daily-stats-row {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .dstat {
+    display: flex; align-items: center; gap: 4px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 12px; font-weight: 600;
+  }
+  .dstat-total { border-color: rgba(59,130,246,.4); color: var(--blue); background: rgba(59,130,246,.08); }
+
+  /* ════════════════════════════════════
+     来源管理面板（复用旧样式）
+  ════════════════════════════════════ */
+  .stats-row { display: flex; gap: 10px; align-items: center; }
+  .stat-chip {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .dot-green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .dot-red   { background: var(--red); }
+  .dot-yellow{ background: var(--yellow); }
+  .dot-gray  { background: #4b5563; }
+
+  .toolbar {
+    padding: 12px 16px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+  }
+  .btn {
+    padding: 7px 14px;
+    border-radius: 8px;
+    border: none;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .btn-primary { background: var(--blue); color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: #2563eb; }
+  .btn-ghost { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+  .btn-ghost:hover { color: var(--text); border-color: #4b5563; }
+  .btn-ghost.active { color: var(--blue); border-color: var(--blue); background: rgba(59,130,246,.1); }
+  .filter-group { display: flex; gap: 5px; }
+  .search-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 12px;
+    color: var(--text);
+    font-size: 12px;
+    width: 180px;
+    outline: none;
+    margin-left: auto;
+  }
+  .search-box:focus { border-color: var(--blue); }
+  .search-box::placeholder { color: var(--text2); }
+
+  .table-wrap { padding: 0 16px 40px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    background: var(--surface);
+    color: var(--text2);
+    font-weight: 600;
+    text-align: left;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+    position: sticky;
+    top: 52px;
+    z-index: 10;
+  }
+  td { padding: 11px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-ok      { background: rgba(34,197,94,.15);  color: var(--green); }
+  .badge-error   { background: rgba(239,68,68,.15);  color: var(--red); }
+  .badge-pending { background: rgba(75,85,99,.2);     color: #6b7280; }
+  .badge-testing { background: rgba(245,158,11,.15); color: var(--yellow); }
+  .badge-skipped { background: rgba(168,85,247,.15); color: var(--purple); }
+
+  .spin { display: inline-block; animation: spin .8s linear infinite; }
+  .type-tag {
+    display: inline-block;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-size: 10px;
+    color: var(--text2);
+    font-weight: 600;
+  }
+  .cat { display: inline-block; background: rgba(59,130,246,.15); color: #93c5fd; border-radius: 4px; padding: 1px 5px; font-size: 10px; margin: 1px; }
+  .titles-list { margin-top: 3px; }
+  .title-item { color: var(--text2); font-size: 11px; line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px; }
+  .err-text { color: var(--red); font-size: 11px; margin-top: 2px; }
+  .latency { font-size: 11px; color: var(--text2); }
+  .btn-test {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text2);
+    border-radius: 5px;
+    padding: 3px 9px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all .15s;
+    white-space: nowrap;
+  }
+  .btn-test:hover { border-color: var(--blue); color: var(--blue); }
+  .progress-bar-wrap { height: 3px; background: var(--surface2); border-radius: 2px; overflow: hidden; margin: 3px 0 0; display: none; }
+  .progress-bar-wrap.show { display: block; }
+  .progress-bar { height: 100%; background: linear-gradient(90deg, var(--blue), var(--purple)); border-radius: 2px; transition: width .3s; }
+
+  /* ════════════════════════════════════
+     每日简报
+  ════════════════════════════════════ */
+  .briefing-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+  .briefing-top-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .briefing-date-select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 6px 12px;
+    font-size: 13px;
+    outline: none;
+  }
+  .btn-briefing {
+    display: flex; align-items: center; gap: 6px;
+    padding: 7px 16px;
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px; font-weight: 600;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-briefing:hover { background: #9333ea; }
+  .btn-briefing:disabled { opacity: .5; cursor: not-allowed; }
+  .briefing-meta { font-size: 12px; color: var(--text2); margin-left: auto; }
+
+  /* 历史列表下拉 */
+  .briefing-history {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .bhist-btn {
+    padding: 4px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    font-size: 12px; font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .bhist-btn:hover { color: var(--purple); border-color: var(--purple); }
+  .bhist-btn.active { background: rgba(168,85,247,.15); color: var(--purple); border-color: rgba(168,85,247,.5); }
+
+  /* 简报卡片 */
+  .briefing-summary-box {
+    background: linear-gradient(135deg, rgba(168,85,247,.08), rgba(59,130,246,.08));
+    border: 1px solid rgba(168,85,247,.3);
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--text);
+  }
+
+  .briefing-section { margin-bottom: 24px; }
+  .briefing-section-title {
+    font-size: 13px; font-weight: 700; color: var(--text2);
+    text-transform: uppercase; letter-spacing: .5px;
+    margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .briefing-section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .headline-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    transition: border-color .15s;
+  }
+  .headline-card:hover { border-color: #3d4470; }
+  .hc-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
+  .hc-imp {
+    flex-shrink: 0;
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .hc-imp-high { background: rgba(239,68,68,.2); color: var(--red); }
+  .hc-imp-mid  { background: rgba(245,158,11,.2); color: var(--yellow); }
+  .hc-imp-low  { background: var(--surface2); color: var(--text2); }
+  .hc-title { font-size: 15px; font-weight: 600; line-height: 1.4; flex: 1; }
+  .hc-summary { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 8px; }
+  .hc-impact { font-size: 12px; color: #93c5fd; background: rgba(59,130,246,.08); border-radius: 6px; padding: 4px 10px; display: inline-block; margin-bottom: 8px; }
+  .hc-sources { display: flex; gap: 6px; flex-wrap: wrap; }
+  .hc-source-link {
+    font-size: 11px; color: var(--text2);
+    text-decoration: none;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 8px;
+    transition: all .1s;
+  }
+  .hc-source-link:hover { color: var(--blue); border-color: var(--blue); }
+
+  /* 市场信号 */
+  .market-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media(max-width:700px) { .market-grid { grid-template-columns: 1fr; } }
+  .market-col-title { font-size: 12px; font-weight: 700; color: var(--text2); margin-bottom: 8px; text-align: center; }
+  .signal-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+  }
+  .signal-dir {
+    display: inline-block;
+    font-size: 11px; font-weight: 700;
+    border-radius: 4px;
+    padding: 2px 8px;
+    margin-bottom: 6px;
+  }
+  .dir-up   { background: rgba(34,197,94,.15); color: var(--green); }
+  .dir-down { background: rgba(239,68,68,.15); color: var(--red); }
+  .dir-neu  { background: var(--surface2); color: var(--text2); }
+  .signal-text { font-size: 13px; font-weight: 600; line-height: 1.4; margin-bottom: 6px; }
+  .signal-analysis { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+  /* 机会 */
+  .opp-card {
+    background: var(--surface);
+    border: 1px solid rgba(245,158,11,.25);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    transition: border-color .15s;
+  }
+  .opp-card:hover { border-color: rgba(245,158,11,.5); }
+  .opp-title { font-size: 14px; font-weight: 700; color: var(--yellow); margin-bottom: 6px; }
+  .opp-detail { font-size: 13px; color: var(--text2); line-height: 1.6; margin-bottom: 6px; }
+  .opp-insight {
+    font-size: 12px; color: var(--cyan);
+    background: rgba(6,182,212,.08);
+    border-radius: 6px; padding: 6px 10px;
+    margin-bottom: 6px; line-height: 1.5;
+  }
+  .opp-insight::before { content: '🤖 AI洞察：'; font-weight: 700; }
+  .opp-action { font-size: 12px; color: var(--green); font-weight: 600; }
+  .opp-action::before { content: '→ '; }
+
+  /* 个人建议 */
+  .personal-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media(max-width:700px) { .personal-cards { grid-template-columns: 1fr; } }
+  .personal-card {
+    background: var(--surface);
+    border: 1px solid rgba(34,197,94,.25);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .personal-action { font-size: 13px; font-weight: 700; color: var(--green); margin-bottom: 6px; }
+  .personal-reason { font-size: 12px; color: var(--text2); line-height: 1.5; margin-bottom: 6px; }
+  .personal-timeframe { font-size: 11px; color: var(--text2); background: var(--surface2); border-radius: 4px; padding: 2px 8px; display: inline-block; }
+
+  /* ════════════════════════════════════
+     文章阅读抽屉
+  ════════════════════════════════════ */
+  .drawer-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.55);
+    z-index: 300;
+  }
+  .drawer-overlay.open { display: block; }
+  .drawer {
+    position: fixed;
+    top: 0; right: 0; bottom: 0;
+    width: min(720px, 92vw);
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    z-index: 301;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform .25s cubic-bezier(.4,0,.2,1);
+    overflow: hidden;
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+  .drawer-title { flex: 1; font-size: 16px; font-weight: 700; line-height: 1.5; }
+  .drawer-close {
+    width: 32px; height: 32px;
+    border: none; background: var(--surface2);
+    border-radius: 8px; color: var(--text2);
+    font-size: 18px; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .drawer-close:hover { background: var(--border); color: var(--text); }
+  .drawer-meta {
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; gap: 8px; flex-wrap: wrap;
+    align-items: center;
+    font-size: 12px; color: var(--text2);
+    flex-shrink: 0;
+  }
+  .drawer-meta a { color: var(--blue); text-decoration: none; font-weight: 600; }
+  .drawer-meta a:hover { text-decoration: underline; }
+  .drawer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+  }
+  .drawer-content {
+    font-size: 15px;
+    line-height: 1.9;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .drawer-loading { text-align: center; padding: 60px; color: var(--text2); font-size: 14px; }
+  .drawer-error { text-align: center; padding: 40px; color: var(--red); font-size: 14px; }
+  .drawer-original-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 24px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    font-size: 13px; text-decoration: none;
+    transition: all .15s;
+  }
+  .drawer-original-link:hover { color: var(--blue); border-color: var(--blue); }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 16px;
+    font-size: 13px;
+    z-index: 999;
+    transform: translateY(20px); opacity: 0;
+    transition: all .25s;
+    pointer-events: none;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- ── 顶部导航 ── -->
+<div class="header">
+  <h1>🌐 新闻聚合</h1>
+  <div class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('daily', this)">📅 今日文章</button>
+    <button class="tab-btn" onclick="switchTab('briefing', this)">📋 每日简报</button>
+    <button class="tab-btn" onclick="switchTab('articles', this)">📰 全部文章</button>
+    <button class="tab-btn" onclick="switchTab('sources', this)">📡 新闻源管理</button>
+  </div>
+  <div class="header-right">
+    <span class="collect-status" id="collectStatus"></span>
+    <button class="btn-collect" id="btnCollect" onclick="triggerCollect()">
+      <span id="collectIcon">⚡</span> 一键采集
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     今日文章面板
+════════════════════════════════════ -->
+<div class="tab-panel active" id="panel-daily">
+  <!-- 日期导航栏 -->
+  <div class="daily-nav">
+    <button class="nav-arrow" onclick="shiftDay(-1)" title="前一天">‹</button>
+    <div class="daily-date-block">
+      <div class="daily-date-main" id="dailyDateMain">—</div>
+      <div class="daily-date-sub" id="dailyDateSub">—</div>
+    </div>
+    <button class="nav-arrow" onclick="shiftDay(1)" id="btnNextDay" title="后一天">›</button>
+    <button class="btn-today" onclick="goToday()" id="btnToday">今天</button>
+    <!-- 日历弹窗触发 -->
+    <div class="cal-wrap">
+      <button class="btn-cal" onclick="toggleCal()" title="跳转到指定日期">📅 选择日期</button>
+      <div class="cal-dropdown" id="calDropdown">
+        <input type="date" id="calPicker" onchange="pickDate(this.value)">
+        <div class="cal-has-dates" id="calHasDates"></div>
+      </div>
+    </div>
+    <!-- 当日统计 -->
+    <div class="daily-stats-row" id="dailyStatsRow"></div>
+  </div>
+
+  <div class="articles-layout">
+    <!-- 左侧筛选 -->
+    <div class="filter-sidebar">
+      <div class="filter-section">
+        <div class="filter-title">国家</div>
+        <button class="filter-opt active" onclick="setDCountry('',this)">全部</button>
+        <button class="filter-opt" onclick="setDCountry('CN',this)">🇨🇳 中国</button>
+        <button class="filter-opt" onclick="setDCountry('US',this)">🇺🇸 美国</button>
+        <button class="filter-opt" onclick="setDCountry('JP',this)">🇯🇵 日本</button>
+        <button class="filter-opt" onclick="setDCountry('GB',this)">🇬🇧 英国</button>
+        <button class="filter-opt" onclick="setDCountry('DE',this)">🇩🇪 德国</button>
+        <button class="filter-opt" onclick="setDCountry('FR',this)">🇫🇷 法国</button>
+        <button class="filter-opt" onclick="setDCountry('ES',this)">🇪🇸 西班牙</button>
+        <button class="filter-opt" onclick="setDCountry('GLOBAL',this)">🌍 全球</button>
+      </div>
+      <div class="filter-section">
+        <div class="filter-title">语言</div>
+        <button class="filter-opt active" onclick="setDLang('',this)">全部</button>
+        <button class="filter-opt" onclick="setDLang('zh',this)">中文</button>
+        <button class="filter-opt" onclick="setDLang('en',this)">English</button>
+        <button class="filter-opt" onclick="setDLang('ja',this)">日本語</button>
+        <button class="filter-opt" onclick="setDLang('de',this)">Deutsch</button>
+        <button class="filter-opt" onclick="setDLang('fr',this)">Français</button>
+        <button class="filter-opt" onclick="setDLang('es',this)">Español</button>
+      </div>
+      <div class="filter-section">
+        <div class="filter-title">分类</div>
+        <button class="filter-opt active" onclick="setDCat('',this)">全部</button>
+        <button class="filter-opt" onclick="setDCat('stock_cn',this)">📈 A股</button>
+        <button class="filter-opt" onclick="setDCat('stock_us',this)">📊 美股</button>
+        <button class="filter-opt" onclick="setDCat('startup',this)">🚀 创业</button>
+        <button class="filter-opt" onclick="setDCat('opportunity',this)">💡 机会</button>
+        <button class="filter-opt" onclick="setDCat('macro',this)">🏛 宏观</button>
+        <button class="filter-opt" onclick="setDCat('tech',this)">💻 科技</button>
+        <button class="filter-opt" onclick="setDCat('general',this)">📰 通用</button>
+      </div>
+      <div class="filter-section">
+        <div class="filter-title">翻译状态</div>
+        <button class="filter-opt active" onclick="setDTrans('',this)">全部</button>
+        <button class="filter-opt" onclick="setDTrans('yes',this)">✅ 已翻译</button>
+        <button class="filter-opt" onclick="setDTrans('no',this)">⏳ 未翻译</button>
+      </div>
+    </div>
+
+    <!-- 文章主区 -->
+    <div class="articles-main">
+      <div class="articles-toolbar">
+        <input class="search-input" id="dailySearch" placeholder="🔍 搜索今日文章..." oninput="debouncedDailySearch()">
+        <div id="dailyCount" style="font-size:12px;color:var(--text2);white-space:nowrap"></div>
+      </div>
+      <div id="dailyList"><div class="empty"><span class="loading-spin">⟳</span> 加载中...</div></div>
+      <div class="pagination" id="dailyPagination"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     每日简报面板
+════════════════════════════════════ -->
+<div class="tab-panel" id="panel-briefing" style="overflow-y:auto;height:calc(100vh - 52px)">
+  <div class="briefing-wrap">
+    <div class="briefing-top-bar">
+      <strong style="font-size:16px">📋 每日简报</strong>
+      <input type="date" class="briefing-date-select" id="briefingDatePicker">
+      <button class="btn-briefing" id="btnGenBriefing" onclick="generateBriefing()">
+        <span id="genIcon">✨</span> 生成简报
+      </button>
+      <button class="btn-briefing" id="btnPushFeishu" onclick="pushFeishu()" style="background:var(--green)">
+        <span id="pushIcon">📨</span> 推送飞书
+      </button>
+      <span class="briefing-meta" id="briefingMeta"></span>
+    </div>
+    <div class="briefing-history" id="briefingHistory"></div>
+    <div id="briefingContent"><div class="empty" style="padding:80px">选择日期并点击「生成简报」，或点击上方历史日期查看已有简报</div></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     文章面板
+════════════════════════════════════ -->
+<div class="tab-panel active" id="panel-articles">
+  <div class="summary-cards" id="summaryCards">
+    <div class="sum-card"><div class="val" id="sum-total">—</div><div class="lbl">文章总数</div></div>
+    <div class="sum-card"><div class="val" id="sum-translated">—</div><div class="lbl">已翻译</div></div>
+    <div class="sum-card" id="sum-country-card"><div class="val" id="sum-top-country">—</div><div class="lbl">最多来源国</div></div>
+    <div class="sum-card"><div class="val" id="sum-top-lang">—</div><div class="lbl">最多语言</div></div>
+  </div>
+
+  <div class="articles-layout">
+    <!-- 左侧筛选 -->
+    <div class="filter-sidebar">
+      <div class="filter-section">
+        <div class="filter-title">国家</div>
+        <button class="filter-opt active" onclick="setCountryFilter('', this)">全部</button>
+        <button class="filter-opt" onclick="setCountryFilter('CN', this)">🇨🇳 中国</button>
+        <button class="filter-opt" onclick="setCountryFilter('US', this)">🇺🇸 美国</button>
+        <button class="filter-opt" onclick="setCountryFilter('JP', this)">🇯🇵 日本</button>
+        <button class="filter-opt" onclick="setCountryFilter('GB', this)">🇬🇧 英国</button>
+        <button class="filter-opt" onclick="setCountryFilter('DE', this)">🇩🇪 德国</button>
+        <button class="filter-opt" onclick="setCountryFilter('FR', this)">🇫🇷 法国</button>
+        <button class="filter-opt" onclick="setCountryFilter('ES', this)">🇪🇸 西班牙</button>
+        <button class="filter-opt" onclick="setCountryFilter('GLOBAL', this)">🌍 全球</button>
+      </div>
+      <div class="filter-section">
+        <div class="filter-title">语言</div>
+        <button class="filter-opt active" onclick="setLangFilter('', this)">全部</button>
+        <button class="filter-opt" onclick="setLangFilter('zh', this)">中文</button>
+        <button class="filter-opt" onclick="setLangFilter('en', this)">English</button>
+        <button class="filter-opt" onclick="setLangFilter('ja', this)">日本語</button>
+        <button class="filter-opt" onclick="setLangFilter('de', this)">Deutsch</button>
+        <button class="filter-opt" onclick="setLangFilter('fr', this)">Français</button>
+        <button class="filter-opt" onclick="setLangFilter('es', this)">Español</button>
+      </div>
+      <div class="filter-section">
+        <div class="filter-title">分类</div>
+        <button class="filter-opt active" onclick="setCatFilter('', this)">全部</button>
+        <button class="filter-opt" onclick="setCatFilter('stock_cn', this)">📈 A股</button>
+        <button class="filter-opt" onclick="setCatFilter('stock_us', this)">📊 美股</button>
+        <button class="filter-opt" onclick="setCatFilter('startup', this)">🚀 创业</button>
+        <button class="filter-opt" onclick="setCatFilter('opportunity', this)">💡 机会</button>
+        <button class="filter-opt" onclick="setCatFilter('macro', this)">🏛 宏观</button>
+        <button class="filter-opt" onclick="setCatFilter('tech', this)">💻 科技</button>
+        <button class="filter-opt" onclick="setCatFilter('general', this)">📰 通用</button>
+      </div>
+      <div class="filter-section">
+        <div class="filter-title">翻译状态</div>
+        <button class="filter-opt active" onclick="setTransFilter('', this)">全部</button>
+        <button class="filter-opt" onclick="setTransFilter('yes', this)">✅ 已翻译</button>
+        <button class="filter-opt" onclick="setTransFilter('no', this)">⏳ 未翻译</button>
+      </div>
+    </div>
+
+    <!-- 文章列表 -->
+    <div class="articles-main">
+      <div class="articles-toolbar">
+        <input class="search-input" id="searchInput" placeholder="🔍 搜索标题、摘要..." oninput="debouncedSearch()">
+        <div id="articleCount" style="font-size:12px;color:var(--text2);white-space:nowrap"></div>
+      </div>
+      <div id="articleList"><div class="empty">请先点击「一键采集」获取文章数据</div></div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     来源管理面板
+════════════════════════════════════ -->
+<div class="tab-panel" id="panel-sources">
+  <div class="toolbar">
+    <button class="btn btn-primary" id="btnTestAll" onclick="testAll()">
+      <span>⚡</span> 一键测试所有
+    </button>
+    <div style="width:140px;">
+      <div class="progress-bar-wrap" id="progressWrap">
+        <div class="progress-bar" id="progressBar" style="width:0%"></div>
+      </div>
+      <div style="font-size:11px;color:var(--text2);margin-top:2px;" id="progressLabel"></div>
+    </div>
+
+    <div class="filter-group">
+      <button class="btn btn-ghost active" onclick="setSFilter('all',this)">全部</button>
+      <button class="btn btn-ghost" onclick="setSFilter('ok',this)">✅</button>
+      <button class="btn btn-ghost" onclick="setSFilter('error',this)">❌</button>
+      <button class="btn btn-ghost" onclick="setSFilter('pending',this)">⏳</button>
+    </div>
+    <div class="filter-group">
+      <button class="btn btn-ghost active" data-country="ALL" onclick="setSCountry('ALL',this)">全部</button>
+      <button class="btn btn-ghost" data-country="CN" onclick="setSCountry('CN',this)">🇨🇳</button>
+      <button class="btn btn-ghost" data-country="US" onclick="setSCountry('US',this)">🇺🇸</button>
+      <button class="btn btn-ghost" data-country="JP" onclick="setSCountry('JP',this)">🇯🇵</button>
+      <button class="btn btn-ghost" data-country="GB" onclick="setSCountry('GB',this)">🇬🇧</button>
+      <button class="btn btn-ghost" data-country="DE" onclick="setSCountry('DE',this)">🇩🇪</button>
+      <button class="btn btn-ghost" data-country="FR" onclick="setSCountry('FR',this)">🇫🇷</button>
+      <button class="btn btn-ghost" data-country="ES" onclick="setSCountry('ES',this)">🇪🇸</button>
+      <button class="btn btn-ghost" data-country="GLOBAL" onclick="setSCountry('GLOBAL',this)">🌍</button>
+    </div>
+    <div class="stats-row" id="statsRow">
+      <div class="stat-chip"><span class="dot dot-gray"></span><span id="s-total">-</span></div>
+      <div class="stat-chip"><span class="dot dot-green"></span><span id="s-ok">-</span></div>
+      <div class="stat-chip"><span class="dot dot-red"></span><span id="s-error">-</span></div>
+      <div class="stat-chip"><span class="dot dot-yellow"></span><span id="s-pending">-</span></div>
+    </div>
+    <input class="search-box" id="sSearchBox" placeholder="🔍 搜索来源..." oninput="renderSources()">
+  </div>
+
+  <div class="table-wrap">
+    <table id="sourceTable">
+      <thead>
+        <tr>
+          <th>来源</th><th>类型</th><th>地址</th><th>分类</th><th>频率</th>
+          <th>状态</th><th>文章数</th><th>延迟</th><th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"><tr><td colspan="9" class="empty">加载中...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- 文章阅读抽屉 -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="articleDrawer">
+  <div class="drawer-header">
+    <div class="drawer-title" id="drawerTitle"></div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-meta" id="drawerMeta"></div>
+  <div class="drawer-body">
+    <div id="drawerBody"><div class="drawer-loading"><span class="loading-spin">⟳</span> 加载中...</div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// 非 HTTP 环境（如 file:// 预览）时指向本地服务
+const API = window.location.protocol.startsWith('http') ? '' : 'http://localhost:8099';
+
+// ══════════════════════════════════════════════════════════
+// Tab 切换
+// ══════════════════════════════════════════════════════════
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'daily')    { loadDailyArticles(); }
+  if (name === 'briefing') { initBriefingTab(); }
+  if (name === 'articles') { loadArticles(); }
+  if (name === 'sources')  { fetchSources(); fetchStats(); }
+}
+
+// ══════════════════════════════════════════════════════════
+// 采集
+// ══════════════════════════════════════════════════════════
+let collectPolling = null;
+
+async function triggerCollect() {
+  const btn = document.getElementById('btnCollect');
+  btn.disabled = true;
+  document.getElementById('collectIcon').textContent = '⟳';
+  document.getElementById('collectIcon').classList.add('loading-spin');
+  document.getElementById('collectStatus').textContent = '采集中...';
+
+  await fetch(API+'/api/collect', { method: 'POST' });
+  showToast('采集已启动，正在后台运行...');
+
+  if (!collectPolling) {
+    collectPolling = setInterval(async () => {
+      const r = await fetch(API+'/api/collect/status').then(x => x.json());
+      if (!r.running) {
+        clearInterval(collectPolling);
+        collectPolling = null;
+        btn.disabled = false;
+        document.getElementById('collectIcon').textContent = '⚡';
+        document.getElementById('collectIcon').classList.remove('loading-spin');
+        const last = r.last || {};
+        const msg = last.error
+          ? `采集失败: ${last.error}`
+          : `采集完成！新增 ${last.articles_new ?? 0} 条`;
+        document.getElementById('collectStatus').textContent = msg;
+        showToast(msg);
+        loadSummary();
+        loadArticles();
+      }
+    }, 2000);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// 文章列表
+// ══════════════════════════════════════════════════════════
+let artFilters = { country: '', lang: '', category: '', keyword: '', translated: '', page: 1 };
+let searchTimer = null;
+
+function debouncedSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    artFilters.keyword = document.getElementById('searchInput').value;
+    artFilters.page = 1;
+    loadArticles();
+  }, 400);
+}
+
+function setCountryFilter(v, btn) {
+  artFilters.country = v; artFilters.page = 1;
+  document.querySelectorAll('#panel-articles .filter-section:nth-child(1) .filter-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active'); loadArticles();
+}
+function setLangFilter(v, btn) {
+  artFilters.lang = v; artFilters.page = 1;
+  document.querySelectorAll('#panel-articles .filter-section:nth-child(2) .filter-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active'); loadArticles();
+}
+function setCatFilter(v, btn) {
+  artFilters.category = v; artFilters.page = 1;
+  document.querySelectorAll('#panel-articles .filter-section:nth-child(3) .filter-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active'); loadArticles();
+}
+function setTransFilter(v, btn) {
+  artFilters.translated = v; artFilters.page = 1;
+  document.querySelectorAll('#panel-articles .filter-section:nth-child(4) .filter-opt').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active'); loadArticles();
+}
+
+async function loadSummary() {
+  try {
+    const s = await fetch(API+'/api/articles/summary').then(r => r.json());
+    document.getElementById('sum-total').textContent = s.total.toLocaleString();
+    document.getElementById('sum-translated').textContent = s.translated.toLocaleString();
+    const topCountry = s.by_country[0];
+    document.getElementById('sum-top-country').textContent = topCountry
+      ? `${countryFlag(topCountry.country)} ${topCountry.count}` : '—';
+    const topLang = s.by_lang[0];
+    document.getElementById('sum-top-lang').textContent = topLang
+      ? `${topLang.lang.toUpperCase()} ${topLang.count}` : '—';
+  } catch(e) {}
+}
+
+async function loadArticles() {
+  const list = document.getElementById('articleList');
+  list.innerHTML = '<div class="empty"><span class="loading-spin">⟳</span> 加载中...</div>';
+
+  const params = new URLSearchParams({
+    page: artFilters.page,
+    size: 20,
+    country: artFilters.country,
+    lang: artFilters.lang,
+    category: artFilters.category,
+    keyword: artFilters.keyword,
+    translated: artFilters.translated,
+  });
+
+  try {
+    const data = await fetch(API+'/api/articles?' + params).then(r => r.json());
+
+    document.getElementById('articleCount').textContent = `共 ${data.total.toLocaleString()} 条`;
+
+    if (!data.items.length) {
+      list.innerHTML = '<div class="empty">没有匹配的文章<br><small style="margin-top:8px;display:block">试试「一键采集」或调整筛选条件</small></div>';
+      document.getElementById('pagination').innerHTML = '';
+      return;
+    }
+
+    list.innerHTML = data.items.map(renderArticleCard).join('');
+    renderPagination(data.total, data.page, data.size);
+  } catch(e) {
+    list.innerHTML = `<div class="empty">加载失败: ${e.message}</div>`;
+  }
+}
+
+function renderArticleCard(a) {
+  const flag = countryFlag(a.source_country);
+  const langTag = `<span class="lang-tag">${a.original_lang}</span>`;
+  const author = a.author ? `<span class="author-tag">✍ ${esc(a.author)}</span>` : '';
+  const pubTime = a.published_at ? `<span class="pub-time">${fmtDate(a.published_at)}</span>` : '';
+
+  const title = a.title_zh || a.title_original;
+  const titleOriginal = a.title_zh && a.title_original !== a.title_zh
+    ? `<div class="card-title-zh">${esc(a.title_original)}</div>` : '';
+
+  const summary = a.summary_zh ? `<div class="card-summary">${esc(a.summary_zh)}</div>` : '';
+
+  const cats = (a.categories || []).map(c => `<span class="cat-tag">${catLabel(c)}</span>`).join('');
+
+  let impBadge = '';
+  if (a.importance >= 7) impBadge = `<span class="importance-badge imp-high">重要 ${a.importance}</span>`;
+  else if (a.importance >= 4) impBadge = `<span class="importance-badge imp-mid">关注 ${a.importance}</span>`;
+
+  const notTrans = !a.is_translated
+    ? '<span class="not-translated">待翻译</span>' : '';
+
+  return `<div class="article-card">
+    <div class="card-meta">
+      <span class="source-flag">${flag}</span>
+      <span class="source-name">${esc(a.source_name)}</span>
+      ${langTag}
+      ${author}
+      ${pubTime}
+    </div>
+    <div class="card-title" style="cursor:pointer" onclick="openArticle(${JSON.stringify(a)})">
+      ${esc(title)}
+    </div>
+    ${titleOriginal}
+    ${summary}
+    <div class="card-footer">${cats}${impBadge}${notTrans}</div>
+  </div>`;
+}
+
+function renderPagination(total, page, size) {
+  const pages = Math.ceil(total / size);
+  if (pages <= 1) { document.getElementById('pagination').innerHTML = ''; return; }
+
+  let html = `<button class="page-btn" onclick="goPage(${page-1})" ${page<=1?'disabled':''}>‹ 上页</button>`;
+
+  const start = Math.max(1, page - 2);
+  const end = Math.min(pages, page + 2);
+  if (start > 1) html += `<button class="page-btn" onclick="goPage(1)">1</button>${start>2?'<span class="page-info">…</span>':''}`;
+  for (let i = start; i <= end; i++) {
+    html += `<button class="page-btn ${i===page?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  if (end < pages) html += `${end<pages-1?'<span class="page-info">…</span>':''}<button class="page-btn" onclick="goPage(${pages})">${pages}</button>`;
+  html += `<button class="page-btn" onclick="goPage(${page+1})" ${page>=pages?'disabled':''}>下页 ›</button>`;
+  html += `<span class="page-info">${page}/${pages} 页</span>`;
+  document.getElementById('pagination').innerHTML = html;
+}
+
+function goPage(p) { artFilters.page = p; loadArticles(); window.scrollTo(0, 0); }
+
+// ══════════════════════════════════════════════════════════
+// 来源管理（保持原有逻辑）
+// ══════════════════════════════════════════════════════════
+let allSources = [];
+let sFilterStatus = 'all';
+let sFilterCountry = 'ALL';
+let sPolling = null;
+
+async function fetchSources() {
+  const res = await fetch(API+'/api/sources');
+  allSources = await res.json();
+  renderSources();
+}
+async function fetchStats() {
+  const res = await fetch(API+'/api/stats');
+  const s = await res.json();
+  document.getElementById('s-total').textContent = s.total;
+  document.getElementById('s-ok').textContent = s.ok;
+  document.getElementById('s-error').textContent = s.error;
+  document.getElementById('s-pending').textContent = s.pending;
+  const done = s.ok + s.error + s.skipped;
+  if (s.total > 0) {
+    document.getElementById('progressBar').style.width = Math.round(done/s.total*100)+'%';
+    document.getElementById('progressLabel').textContent = done < s.total ? `${done}/${s.total}` : '';
+  }
+}
+function renderSources() {
+  const q = document.getElementById('sSearchBox').value.toLowerCase();
+  let data = allSources.filter(s => {
+    if (sFilterStatus !== 'all' && s.status !== sFilterStatus) return false;
+    if (sFilterCountry !== 'ALL' && s.country !== sFilterCountry) return false;
+    if (q && !s.name.toLowerCase().includes(q) && !s.id.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const tbody = document.getElementById('tableBody');
+  if (!data.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">没有匹配</td></tr>'; return; }
+  tbody.innerHTML = data.map(s => {
+    const badge = sBadge(s.status);
+    const cats = s.categories.map(c => `<span class="cat">${c}</span>`).join('');
+    const url = s.url.length > 38 ? s.url.slice(0,38)+'…' : s.url;
+    const latency = s.latency_ms > 0 ? `<span class="latency">${s.latency_ms}ms</span>` : '';
+    let detail = '';
+    if (s.status==='ok'&&s.titles.length) detail='<div class="titles-list">'+s.titles.map(t=>`<div class="title-item">· ${t}</div>`).join('')+'</div>';
+    else if (s.status==='error'&&s.error) detail=`<div class="err-text">⚠ ${s.error}</div>`;
+    const testBtn = s.status==='testing'
+      ? `<span style="color:var(--yellow);font-size:11px"><span class="spin">⟳</span></span>`
+      : `<button class="btn-test" onclick="testOne('${s.id}')">重测</button>`;
+    return `<tr><td><div style="display:flex;align-items:center;gap:7px"><span style="font-size:18px">${s.flag}</span><div><div style="font-weight:600">${s.name}</div><div style="color:var(--text2);font-size:10px">${s.id}</div></div></div></td><td><span class="type-tag">${s.type}</span><br><span style="font-size:10px;color:var(--text2)">${s.lang}</span></td><td style="font-family:monospace;font-size:10px;color:var(--text2);max-width:180px;word-break:break-all">${url}</td><td>${cats}</td><td style="color:var(--text2);font-size:11px;white-space:nowrap">${s.interval}</td><td>${badge}${detail}</td><td style="font-weight:700;font-size:15px;color:${s.count>0?'var(--green)':'var(--text2)'}">${s.count||'-'}</td><td>${latency}</td><td>${testBtn}</td></tr>`;
+  }).join('');
+}
+function sBadge(status) {
+  return ({
+    ok:`<span class="badge badge-ok"><span class="dot dot-green"></span>正常</span>`,
+    error:`<span class="badge badge-error"><span class="dot dot-red"></span>失败</span>`,
+    pending:`<span class="badge badge-pending">未测</span>`,
+    testing:`<span class="badge badge-testing"><span class="spin">⟳</span></span>`,
+    skipped:`<span class="badge badge-skipped">跳过</span>`,
+  })[status] || '<span class="badge badge-pending">未测</span>';
+}
+async function testOne(id) {
+  const s = allSources.find(x=>x.id===id); if(s) s.status='testing'; renderSources();
+  await fetch(`/api/sources/${id}/test`,{method:'POST'}); startSPolling();
+}
+async function testAll() {
+  document.getElementById('btnTestAll').disabled=true;
+  document.getElementById('progressWrap').classList.add('show');
+  allSources.forEach(s=>{s.status='testing';}); renderSources();
+  await fetch(API+'/api/sources/test-all',{method:'POST'}); startSPolling();
+  showToast('开始并发测试...');
+}
+function startSPolling() {
+  if(sPolling) return;
+  sPolling=setInterval(async()=>{
+    await fetchSources(); await fetchStats();
+    if(!allSources.some(s=>s.status==='testing')){
+      clearInterval(sPolling); sPolling=null;
+      document.getElementById('btnTestAll').disabled=false;
+      document.getElementById('progressWrap').classList.remove('show');
+      showToast(`完成: ${allSources.filter(s=>s.status==='ok').length} 正常`);
+    }
+  },1200);
+}
+function setSFilter(v,btn){
+  sFilterStatus=v;
+  document.querySelectorAll('#panel-sources .filter-group:nth-child(3) .btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); renderSources();
+}
+function setSCountry(v,btn){
+  sFilterCountry=v;
+  document.querySelectorAll('[data-country]').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); renderSources();
+}
+
+// ══════════════════════════════════════════════════════════
+// 工具函数
+// ══════════════════════════════════════════════════════════
+function countryFlag(c) {
+  return {CN:'🇨🇳',US:'🇺🇸',JP:'🇯🇵',GB:'🇬🇧',DE:'🇩🇪',FR:'🇫🇷',ES:'🇪🇸',GLOBAL:'🌍'}[c] || '🏳';
+}
+function catLabel(c) {
+  return {stock_cn:'📈A股',stock_us:'📊美股',startup:'🚀创业',opportunity:'💡机会',macro:'🏛宏观',tech:'💻科技',general:'📰通用'}[c] || c;
+}
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = (now - d) / 1000;
+  if (diff < 3600) return Math.floor(diff/60) + '分钟前';
+  if (diff < 86400) return Math.floor(diff/3600) + '小时前';
+  return d.toLocaleDateString('zh-CN', {month:'2-digit',day:'2-digit'}) + ' ' + d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'});
+}
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ══════════════════════════════════════════════════════════
+// 今日文章
+// ══════════════════════════════════════════════════════════
+const WEEKDAYS = ['周日','周一','周二','周三','周四','周五','周六'];
+const MONTHS   = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+let dailyDate   = todayStr();
+let dailyFilters = { country:'', lang:'', category:'', translated:'', keyword:'', page:1 };
+let dailySearchTimer = null;
+let availDates  = [];
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function parseDateStr(s) {
+  const [y,m,d] = s.split('-').map(Number);
+  return new Date(y, m-1, d);
+}
+
+function fmtDateNav(s) {
+  const d = parseDateStr(s);
+  const today = todayStr();
+  const yesterday = shiftDateStr(today, -1);
+  let sub = `${d.getFullYear()}年${MONTHS[d.getMonth()]} ${WEEKDAYS[d.getDay()]}`;
+  let main;
+  if (s === today)     { main = '今天'; }
+  else if (s === yesterday) { main = '昨天'; }
+  else { main = `${MONTHS[d.getMonth()]}${d.getDate()}日`; }
+  return { main, sub };
+}
+
+function shiftDateStr(s, delta) {
+  const d = parseDateStr(s);
+  d.setDate(d.getDate() + delta);
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function shiftDay(delta) {
+  const next = shiftDateStr(dailyDate, delta);
+  if (next > todayStr()) return;
+  dailyDate = next;
+  dailyFilters.page = 1;
+  updateDailyNav();
+  loadDailyArticles();
+}
+
+function goToday() {
+  dailyDate = todayStr();
+  dailyFilters.page = 1;
+  updateDailyNav();
+  loadDailyArticles();
+}
+
+function updateDailyNav() {
+  const { main, sub } = fmtDateNav(dailyDate);
+  document.getElementById('dailyDateMain').textContent = main;
+  document.getElementById('dailyDateSub').textContent  = sub;
+  // 今天不能再往后
+  const isToday = dailyDate === todayStr();
+  document.getElementById('btnNextDay').disabled = isToday;
+  document.getElementById('btnToday').classList.toggle('hidden', isToday);
+  // 同步日历 input
+  document.getElementById('calPicker').value = dailyDate;
+}
+
+function toggleCal() {
+  const el = document.getElementById('calDropdown');
+  el.classList.toggle('open');
+  if (el.classList.contains('open')) renderHasDates();
+}
+
+function pickDate(val) {
+  if (!val || val > todayStr()) return;
+  dailyDate = val;
+  dailyFilters.page = 1;
+  document.getElementById('calDropdown').classList.remove('open');
+  updateDailyNav();
+  loadDailyArticles();
+}
+
+function renderHasDates() {
+  const today = todayStr();
+  const html = availDates.map(d => {
+    const isT = d.date === today;
+    return `<button class="has-date-btn${isT?' today':''}" onclick="pickDate('${d.date}')">${d.date.slice(5)} <span style="color:var(--text2);font-size:10px">${d.count}</span></button>`;
+  }).join('');
+  document.getElementById('calHasDates').innerHTML = html || '<span style="color:var(--text2);font-size:12px">暂无历史数据</span>';
+}
+
+async function loadAvailDates() {
+  try {
+    availDates = await fetch(API+'/api/articles/available-dates').then(r => r.json());
+  } catch(e) {}
+}
+
+async function loadDailyStats() {
+  try {
+    const s = await fetch(`/api/articles/daily/stats?date=${dailyDate}`).then(r => r.json());
+    const flags = {CN:'🇨🇳',US:'🇺🇸',JP:'🇯🇵',GB:'🇬🇧',DE:'🇩🇪',FR:'🇫🇷',ES:'🇪🇸',GLOBAL:'🌍'};
+    let html = `<div class="dstat dstat-total">共 ${s.total} 条</div>`;
+    s.by_country.slice(0,5).forEach(r => {
+      html += `<div class="dstat">${flags[r.country]||'🏳'} ${r.count}</div>`;
+    });
+    document.getElementById('dailyStatsRow').innerHTML = html;
+  } catch(e) {}
+}
+
+async function loadDailyArticles() {
+  const list = document.getElementById('dailyList');
+  list.innerHTML = '<div class="empty"><span class="loading-spin">⟳</span> 加载中...</div>';
+
+  const p = new URLSearchParams({
+    date: dailyDate, page: dailyFilters.page, size: 20,
+    country: dailyFilters.country, lang: dailyFilters.lang,
+    category: dailyFilters.category, keyword: dailyFilters.keyword,
+    translated: dailyFilters.translated,
+  });
+
+  try {
+    const data = await fetch(API+'/api/articles/daily?' + p).then(r => r.json());
+    document.getElementById('dailyCount').textContent = `当日 ${data.total} 条`;
+
+    if (!data.items.length) {
+      list.innerHTML = '<div class="empty">当日暂无文章<br><small style="display:block;margin-top:8px">可点击「一键采集」获取数据</small></div>';
+      document.getElementById('dailyPagination').innerHTML = '';
+      return;
+    }
+    list.innerHTML = data.items.map(renderArticleCard).join('');
+    renderDailyPagination(data.total, data.page, 20);
+  } catch(e) {
+    list.innerHTML = `<div class="empty">加载失败: ${e.message}</div>`;
+  }
+  loadDailyStats();
+}
+
+function renderDailyPagination(total, page, size) {
+  const pages = Math.ceil(total / size);
+  if (pages <= 1) { document.getElementById('dailyPagination').innerHTML = ''; return; }
+  let html = `<button class="page-btn" onclick="goDailyPage(${page-1})" ${page<=1?'disabled':''}>‹ 上页</button>`;
+  const start = Math.max(1, page-2), end = Math.min(pages, page+2);
+  if (start>1) html += `<button class="page-btn" onclick="goDailyPage(1)">1</button>${start>2?'<span class="page-info">…</span>':''}`;
+  for (let i=start; i<=end; i++) html += `<button class="page-btn ${i===page?'active':''}" onclick="goDailyPage(${i})">${i}</button>`;
+  if (end<pages) html += `${end<pages-1?'<span class="page-info">…</span>':''}<button class="page-btn" onclick="goDailyPage(${pages})">${pages}</button>`;
+  html += `<button class="page-btn" onclick="goDailyPage(${page+1})" ${page>=pages?'disabled':''}>下页 ›</button>`;
+  html += `<span class="page-info">${page}/${pages} 页</span>`;
+  document.getElementById('dailyPagination').innerHTML = html;
+}
+
+function goDailyPage(p) { dailyFilters.page = p; loadDailyArticles(); window.scrollTo(0,0); }
+
+function setDCountry(v,btn) {
+  dailyFilters.country=v; dailyFilters.page=1;
+  btn.closest('.filter-section').querySelectorAll('.filter-opt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); loadDailyArticles();
+}
+function setDLang(v,btn) {
+  dailyFilters.lang=v; dailyFilters.page=1;
+  btn.closest('.filter-section').querySelectorAll('.filter-opt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); loadDailyArticles();
+}
+function setDCat(v,btn) {
+  dailyFilters.category=v; dailyFilters.page=1;
+  btn.closest('.filter-section').querySelectorAll('.filter-opt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); loadDailyArticles();
+}
+function setDTrans(v,btn) {
+  dailyFilters.translated=v; dailyFilters.page=1;
+  btn.closest('.filter-section').querySelectorAll('.filter-opt').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active'); loadDailyArticles();
+}
+function debouncedDailySearch() {
+  clearTimeout(dailySearchTimer);
+  dailySearchTimer = setTimeout(()=>{
+    dailyFilters.keyword = document.getElementById('dailySearch').value;
+    dailyFilters.page = 1;
+    loadDailyArticles();
+  }, 400);
+}
+
+// ══════════════════════════════════════════════════════════
+// 文章阅读抽屉
+// ══════════════════════════════════════════════════════════
+function openArticle(a) {
+  const title = a.title_zh || a.title_original;
+  document.getElementById('drawerTitle').textContent = title;
+
+  // meta 行
+  const flag = countryFlag(a.source_country);
+  const pubTime = a.published_at ? fmtDate(a.published_at) : '';
+  const origLink = a.content_url
+    ? `<a href="${esc(a.content_url)}" target="_blank" rel="noopener">🔗 原文链接</a>`
+    : '';
+  document.getElementById('drawerMeta').innerHTML =
+    `<span>${flag} ${esc(a.source_name)}</span>
+     <span style="color:var(--border)">|</span>
+     <span>${a.original_lang}</span>
+     ${pubTime ? `<span style="color:var(--border)">|</span><span>${pubTime}</span>` : ''}
+     ${origLink ? `<span style="color:var(--border)">|</span>${origLink}` : ''}`;
+
+  // 打开抽屉，先显示加载态
+  document.getElementById('drawerBody').innerHTML =
+    '<div class="drawer-loading"><span class="loading-spin">⟳</span> 正在读取正文...</div>';
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('articleDrawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // 异步加载正文
+  fetchArticleContent(a.id, a.content_url, a.summary_zh);
+}
+
+async function fetchArticleContent(id, url, fallbackSummary) {
+  const body = document.getElementById('drawerBody');
+  try {
+    const data = await fetch(API + `/api/articles/${id}/content`).then(r => r.json());
+    if (data.error) throw new Error(data.error);
+
+    const cachedBadge = data.cached
+      ? '<span style="font-size:11px;color:var(--green);background:rgba(34,197,94,.1);border-radius:4px;padding:2px 7px;margin-bottom:16px;display:inline-block">✓ 已缓存</span>'
+      : '';
+
+    body.innerHTML = `${cachedBadge}<div class="drawer-content">${esc(data.content)}</div>`;
+  } catch(e) {
+    // 抓取失败时降级：显示摘要 + 原文链接
+    const summary = fallbackSummary
+      ? `<div style="font-size:14px;color:var(--text2);line-height:1.8;margin-bottom:20px">${esc(fallbackSummary)}</div>` : '';
+    const errMsg = `<div class="drawer-error" style="text-align:left;padding:0;margin-bottom:16px">⚠ 无法抓取正文：${esc(e.message)}</div>`;
+    const link = url
+      ? `<a class="drawer-original-link" href="${esc(url)}" target="_blank" rel="noopener">↗ 在原网站阅读全文</a>` : '';
+    body.innerHTML = errMsg + summary + link;
+  }
+}
+
+function closeDrawer() {
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('articleDrawer').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// ESC 键关闭抽屉
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeDrawer();
+});
+
+// ══════════════════════════════════════════════════════════
+// 每日简报
+// ══════════════════════════════════════════════════════════
+let briefingPolling = null;
+let briefingHistoryList = [];
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+async function initBriefingTab() {
+  // 设置日期picker默认今天
+  const picker = document.getElementById('briefingDatePicker');
+  if (!picker.value) picker.value = todayStr();
+  await loadBriefingHistory();
+  // 如果有今日简报，直接显示
+  const today = todayStr();
+  const hasToday = briefingHistoryList.find(h => h.date === today);
+  if (hasToday) loadBriefing(today);
+  // 检查是否有生成任务在跑
+  checkBriefingStatus();
+}
+
+async function loadBriefingHistory() {
+  try {
+    const list = await fetch(API + '/api/briefing/list').then(r => r.json());
+    briefingHistoryList = Array.isArray(list) ? list : [];
+    renderBriefingHistory();
+  } catch(e) {
+    briefingHistoryList = [];
+  }
+}
+
+function renderBriefingHistory() {
+  const el = document.getElementById('briefingHistory');
+  if (!briefingHistoryList.length) {
+    el.innerHTML = '<span style="font-size:12px;color:var(--text2)">暂无历史简报</span>';
+    return;
+  }
+  el.innerHTML = briefingHistoryList.map(h => {
+    const active = document.getElementById('briefingDatePicker')?.value === h.date ? 'active' : '';
+    return `<button class="bhist-btn ${active}" onclick="loadBriefing('${h.date}')">${h.date} <span style="opacity:.6;font-size:10px">${h.article_count}篇</span></button>`;
+  }).join('');
+}
+
+async function loadBriefing(date) {
+  document.getElementById('briefingDatePicker').value = date;
+  // 更新history按钮高亮
+  document.querySelectorAll('.bhist-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.startsWith(date));
+  });
+
+  const content = document.getElementById('briefingContent');
+  content.innerHTML = '<div class="empty"><span class="loading-spin">⟳</span> 加载简报...</div>';
+  try {
+    const data = await fetch(API + `/api/briefing/${date}`).then(r => {
+      if (!r.ok) throw new Error(`暂无 ${date} 的简报`);
+      return r.json();
+    });
+    renderBriefing(data);
+    const meta = data.generated_at ? `生成于 ${data.generated_at.slice(0,16).replace('T',' ')} · ${data.article_count}篇→${data.top_count}篇` : '';
+    document.getElementById('briefingMeta').textContent = meta;
+  } catch(e) {
+    content.innerHTML = `<div class="empty">${e.message}</div>`;
+  }
+}
+
+function renderBriefing(data) {
+  const s = data.sections || data;
+  let html = '';
+
+  // 总结
+  if (s.summary) {
+    html += `<div class="briefing-summary-box">${esc(s.summary)}</div>`;
+  }
+
+  // 头条
+  if (s.headlines?.length) {
+    html += `<div class="briefing-section">
+      <div class="briefing-section-title">🔥 重大事项</div>`;
+    s.headlines.forEach(h => {
+      const imp = h.importance >= 8 ? 'hc-imp-high' : h.importance >= 5 ? 'hc-imp-mid' : 'hc-imp-low';
+      html += `<div class="headline-card">
+        <div class="hc-top">
+          <div class="hc-imp ${imp}">${h.importance || '—'}</div>
+          <div class="hc-title">${esc(h.title)}</div>
+        </div>
+        <div class="hc-summary">${esc(h.summary || '')}</div>
+        ${h.impact ? `<div class="hc-impact">${esc(h.impact)}</div>` : ''}
+        <div class="hc-sources">${renderSrcLinks(h.sources)}</div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  // 市场信号
+  const mkt = s.market;
+  if (mkt) {
+    html += `<div class="briefing-section">
+      <div class="briefing-section-title">📊 市场信号</div>
+      <div class="market-grid">
+        <div>
+          <div class="market-col-title">📈 A股</div>
+          ${renderSignals(mkt.a_share)}
+        </div>
+        <div>
+          <div class="market-col-title">🗽 美股</div>
+          ${renderSignals(mkt.us_share)}
+        </div>
+        <div>
+          <div class="market-col-title">🏛 宏观</div>
+          ${renderSignals(mkt.macro)}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // 机会
+  if (s.opportunities?.length) {
+    html += `<div class="briefing-section">
+      <div class="briefing-section-title">💡 潜在机会</div>`;
+    s.opportunities.forEach(o => {
+      html += `<div class="opp-card">
+        <div class="opp-title">${esc(o.title)}</div>
+        <div class="opp-detail">${esc(o.detail || '')}</div>
+        ${o.ai_insight ? `<div class="opp-insight">${esc(o.ai_insight)}</div>` : ''}
+        ${o.actionable ? `<div class="opp-action">${esc(o.actionable)}</div>` : ''}
+        <div class="hc-sources" style="margin-top:8px">${renderSrcLinks(o.sources)}</div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+
+  // 个人建议
+  if (s.personal?.length) {
+    html += `<div class="briefing-section">
+      <div class="briefing-section-title">✅ 个人行动建议</div>
+      <div class="personal-cards">`;
+    s.personal.forEach(p => {
+      html += `<div class="personal-card">
+        <div class="personal-action">${esc(p.action)}</div>
+        <div class="personal-reason">${esc(p.reason || '')}</div>
+        ${p.timeframe ? `<span class="personal-timeframe">⏱ ${esc(p.timeframe)}</span>` : ''}
+      </div>`;
+    });
+    html += '</div></div>';
+  }
+
+  document.getElementById('briefingContent').innerHTML = html || '<div class="empty">简报内容为空</div>';
+}
+
+function renderSignals(signals) {
+  if (!signals?.length) return '<div style="color:var(--text2);font-size:12px;padding:8px">暂无数据</div>';
+  return signals.map(s => {
+    const dir = s.direction;
+    const dirClass = dir === '利好' ? 'dir-up' : dir === '利空' ? 'dir-down' : 'dir-neu';
+    return `<div class="signal-card">
+      <span class="signal-dir ${dirClass}">${esc(dir || '中性')}</span>
+      <div class="signal-text">${esc(s.signal || '')}</div>
+      <div class="signal-analysis">${esc(s.analysis || '')}</div>
+      <div class="hc-sources" style="margin-top:6px">${renderSrcLinks(s.sources)}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderSrcLinks(sources) {
+  if (!sources?.length) return '';
+  return sources.map(s => {
+    const url = s.url || '#';
+    const name = s.name || '来源';
+    return `<a class="hc-source-link" href="${esc(url)}" target="_blank" rel="noopener">${esc(name)}</a>`;
+  }).join('');
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function pushFeishu() {
+  const date = document.getElementById('briefingDatePicker').value || todayStr();
+  const btn = document.getElementById('btnPushFeishu');
+  btn.disabled = true;
+  document.getElementById('pushIcon').textContent = '⟳';
+  document.getElementById('pushIcon').classList.add('loading-spin');
+  try {
+    const r = await fetch(API + `/api/briefing/push?date=${date}`, { method: 'POST' }).then(x => x.json());
+    if (r.error) throw new Error(r.error);
+    showToast('✅ 正在推送到飞书，约1分钟完成...');
+  } catch(e) {
+    showToast('❌ 推送失败: ' + e.message);
+  } finally {
+    setTimeout(() => {
+      btn.disabled = false;
+      document.getElementById('pushIcon').textContent = '📨';
+      document.getElementById('pushIcon').classList.remove('loading-spin');
+    }, 8000);
+  }
+}
+
+async function generateBriefing() {
+  const date = document.getElementById('briefingDatePicker').value || todayStr();
+  const btn = document.getElementById('btnGenBriefing');
+  btn.disabled = true;
+  document.getElementById('genIcon').textContent = '⟳';
+  document.getElementById('genIcon').classList.add('loading-spin');
+  document.getElementById('briefingContent').innerHTML =
+    '<div class="empty"><span class="loading-spin">⟳</span> 正在生成简报，请稍候（约2-5分钟）...</div>';
+
+  try {
+    await fetch(API + `/api/briefing/generate?date=${date}`, { method: 'POST' });
+    showToast(`简报生成中，日期：${date}`);
+    briefingPolling = setInterval(checkBriefingStatus, 5000);
+  } catch(e) {
+    showToast('启动失败: ' + e.message);
+    btn.disabled = false;
+    document.getElementById('genIcon').textContent = '✨';
+    document.getElementById('genIcon').classList.remove('loading-spin');
+  }
+}
+
+async function checkBriefingStatus() {
+  try {
+    const r = await fetch(API + '/api/briefing/status').then(x => x.json());
+    const btn = document.getElementById('btnGenBriefing');
+    if (!r.running) {
+      if (briefingPolling) { clearInterval(briefingPolling); briefingPolling = null; }
+      btn.disabled = false;
+      document.getElementById('genIcon').textContent = '✨';
+      document.getElementById('genIcon').classList.remove('loading-spin');
+      if (r.last?.status === 'ok') {
+        showToast(`简报生成完成！${r.last.date}`);
+        await loadBriefingHistory();
+        loadBriefing(r.last.date);
+      } else if (r.last?.status === 'error') {
+        document.getElementById('briefingContent').innerHTML =
+          `<div class="empty" style="color:var(--red)">生成失败：${esc(r.last.error)}</div>`;
+        showToast('简报生成失败: ' + r.last.error);
+      }
+    } else {
+      btn.disabled = true;
+      if (!briefingPolling) briefingPolling = setInterval(checkBriefingStatus, 5000);
+    }
+  } catch(e) {}
+}
+
+// 点击页面其他地方关闭日历
+document.addEventListener('click', e => {
+  if (!e.target.closest('.cal-wrap')) {
+    document.getElementById('calDropdown').classList.remove('open');
+  }
+});
+
+// ── 初始化 ──
+updateDailyNav();
+loadAvailDates().then(() => loadDailyArticles());
+loadSummary();
+
+// 采集状态轮询（页面加载后检查）
+fetch(API+'/api/collect/status').then(r=>r.json()).then(r=>{
+  if(r.running){
+    document.getElementById('collectStatus').textContent='采集中...';
+    document.getElementById('btnCollect').disabled=true;
+    // 如果采集完成后刷新今日文章
+    collectPolling = setInterval(async()=>{
+      const s = await fetch(API+'/api/collect/status').then(x=>x.json());
+      if(!s.running){
+        clearInterval(collectPolling); collectPolling=null;
+        document.getElementById('btnCollect').disabled=false;
+        document.getElementById('collectIcon').textContent='⚡';
+        document.getElementById('collectIcon').classList.remove('loading-spin');
+        loadAvailDates();
+        loadDailyArticles();
+        loadDailyStats();
+        loadSummary();
+      }
+    }, 2000);
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+
+# Local state and credentials
+.env*
+!.env.example
+*.db
+*.sqlite*
+*.log
+logs/
+data/
+var/
+venv/
+.venv/
+__pycache__/
+.pytest_cache/
+.DS_Store

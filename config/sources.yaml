@@ -1,0 +1,501 @@
+# ============================================================
+# 全球新闻数据来源配置
+# type: rss | rsshub | gdelt | wechat | nyt_api
+# interval: 采集间隔（秒）
+# categories: 预设分类标签
+# ============================================================
+
+# ──────────────────── 🇨🇳 中国来源 ────────────────────
+
+cn_official:
+  - id: xinhua_domestic
+    name: 新华社（国内）
+    country: CN
+    lang: zh
+    type: rss
+    url: https://news.google.com/rss/search?q=when:48h+allinurl:xinhuanet.com&hl=zh-CN&gl=CN&ceid=CN:zh-Hans
+    interval: 1800
+    categories: [macro, general]
+
+  - id: xinhua_finance
+    name: 新华社（财经）
+    country: CN
+    lang: zh
+    type: rss
+    url: https://news.google.com/rss/search?q=when:48h+新华社+财经&hl=zh-CN&gl=CN&ceid=CN:zh-Hans
+    interval: 1800
+    categories: [macro, stock_cn]
+
+  - id: chinanews_top
+    name: 中国新闻网（头条）
+    country: CN
+    lang: zh
+    type: rss
+    url: https://www.chinanews.com.cn/rss/scroll-news.xml
+    interval: 1800
+    categories: [macro, general]
+
+  - id: people_politics
+    name: 人民日报（时政）
+    country: CN
+    lang: zh
+    type: rss
+    url: http://www.people.com.cn/rss/politics.xml
+    interval: 3600
+    categories: [macro, general]
+
+  - id: people_finance
+    name: 人民日报（财经）
+    country: CN
+    lang: zh
+    type: rss
+    url: http://www.people.com.cn/rss/finance.xml
+    interval: 3600
+    categories: [macro, stock_cn]
+
+  - id: sina_finance
+    name: 新浪财经
+    country: CN
+    lang: zh
+    type: rss
+    url: https://rss.sina.com.cn/news/china/focus15.xml
+    interval: 1800
+    categories: [stock_cn, macro]
+
+cn_finance:
+  - id: cls_realtime
+    name: 财联社（电报）
+    country: CN
+    lang: zh
+    type: rsshub
+    rsshub_path: /cls/telegraph
+    interval: 600
+    categories: [stock_cn, macro]
+
+  - id: cls_depth
+    name: 财联社（深度）
+    country: CN
+    lang: zh
+    type: rsshub
+    rsshub_path: /cls/depth
+    interval: 1800
+    categories: [stock_cn, macro]
+
+  - id: 36kr_news
+    name: 36氪（快讯）
+    country: CN
+    lang: zh
+    type: rss
+    url: https://36kr.com/feed
+    interval: 1800
+    categories: [startup, tech, opportunity]
+
+  - id: 36kr_rsshub
+    name: 36氪（RSSHub备用）
+    country: CN
+    lang: zh
+    type: rsshub
+    rsshub_path: /36kr/news/latest
+    interval: 1800
+    categories: [startup, tech, opportunity]
+
+  - id: huxiu
+    name: 虎嗅
+    country: CN
+    lang: zh
+    type: rsshub
+    rsshub_path: /huxiu/article
+    interval: 3600
+    categories: [startup, tech, opportunity]
+
+  - id: titanmedia
+    name: 钛媒体
+    country: CN
+    lang: zh
+    type: rss
+    url: https://www.tmtpost.com/feed
+    interval: 3600
+    categories: [startup, tech]
+
+  - id: wallstreetcn
+    name: 华尔街见闻
+    country: CN
+    lang: zh
+    type: rsshub
+    rsshub_path: /wallstreetcn/news/global
+    interval: 900
+    categories: [stock_cn, stock_us, macro]
+
+  - id: eastmoney_news
+    name: 东方财富（A股）
+    country: CN
+    lang: zh
+    type: rss
+    url: https://news.google.com/rss/search?q=when:24h+A股+site:eastmoney.com&hl=zh-CN&gl=CN&ceid=CN:zh-Hans
+    interval: 1200
+    categories: [stock_cn]
+
+cn_social:
+  - id: zhihu_daily
+    name: 知乎日报
+    country: CN
+    lang: zh
+    type: rsshub
+    rsshub_path: /zhihu/daily
+    interval: 86400
+    categories: [general, opportunity]
+
+  - id: weibo_hot
+    name: 微博热搜（Google）
+    country: CN
+    lang: zh
+    type: rss
+    url: https://news.google.com/rss/search?q=when:6h+微博+热搜&hl=zh-CN&gl=CN&ceid=CN:zh-Hans
+    interval: 1800
+    categories: [general]
+
+cn_wechat:
+  - id: wechat_placeholder
+    name: 微信公众号（待配置）
+    country: CN
+    lang: zh
+    type: wechat
+    accounts: []
+    interval: 3600
+    categories: [general]
+    note: "需先部署 WeWe-RSS: https://github.com/cooderl/wewe-rss"
+
+# ──────────────────── 🇺🇸 美国来源 ────────────────────
+
+us_news:
+  - id: nyt_topstories
+    name: New York Times（头条）
+    country: US
+    lang: en
+    type: nyt_api
+    nyt_section: home
+    interval: 1800
+    categories: [macro, general]
+    note: "需配置 NYT_API_KEY"
+
+  - id: nyt_business
+    name: New York Times（商业）
+    country: US
+    lang: en
+    type: nyt_api
+    nyt_section: business
+    interval: 1800
+    categories: [macro, stock_us, opportunity]
+    note: "需配置 NYT_API_KEY"
+
+  - id: reuters_world
+    name: Reuters（国际头条）
+    country: US
+    lang: en
+    type: rss
+    url: https://news.google.com/rss/headlines/section/topic/WORLD?hl=en-US&gl=US&ceid=US:en
+    interval: 1800
+    categories: [macro, general]
+
+  - id: reuters_business
+    name: Reuters（商业财经）
+    country: US
+    lang: en
+    type: rss
+    url: https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=en-US&gl=US&ceid=US:en
+    interval: 1800
+    categories: [macro, stock_us]
+
+  - id: ap_top
+    name: AP News（头条）
+    country: US
+    lang: en
+    type: rss
+    url: https://news.google.com/rss/search?q=when:24h+site:apnews.com&hl=en-US&gl=US&ceid=US:en
+    interval: 1800
+    categories: [macro, general]
+
+  - id: techcrunch
+    name: TechCrunch
+    country: US
+    lang: en
+    type: rss
+    url: https://techcrunch.com/feed/
+    interval: 3600
+    categories: [startup, tech, opportunity]
+
+  - id: wsj_markets
+    name: Wall Street Journal（市场）
+    country: US
+    lang: en
+    type: rss
+    url: https://feeds.a.dj.com/rss/RSSMarketsMain.xml
+    interval: 1800
+    categories: [stock_us, macro]
+
+  - id: us_tech_gnews
+    name: Google新闻（美国科技）
+    country: US
+    lang: en
+    type: rss
+    url: https://news.google.com/rss/headlines/section/topic/TECHNOLOGY?hl=en-US&gl=US&ceid=US:en
+    interval: 3600
+    categories: [tech, startup]
+
+# ──────────────────── 🇯🇵 日本来源 ────────────────────
+
+jp_news:
+  - id: nhk_top
+    name: NHK（最新ニュース）
+    country: JP
+    lang: ja
+    type: rss
+    url: https://www3.nhk.or.jp/rss/news/cat0.xml
+    interval: 1800
+    categories: [macro, general]
+
+  - id: nhk_business
+    name: NHK（経済）
+    country: JP
+    lang: ja
+    type: rss
+    url: https://www3.nhk.or.jp/rss/news/cat4.xml
+    interval: 1800
+    categories: [macro, stock_us]
+
+  - id: nhk_tech
+    name: NHK（科学・文化）
+    country: JP
+    lang: ja
+    type: rss
+    url: https://www3.nhk.or.jp/rss/news/cat3.xml
+    interval: 3600
+    categories: [tech]
+
+  - id: asahi_top
+    name: 朝日新聞（トップ）
+    country: JP
+    lang: ja
+    type: rss
+    url: https://www.asahi.com/rss/asahi/newsheadlines.rdf
+    interval: 3600
+    categories: [macro, general]
+
+  - id: nikkei_top
+    name: 日本経済新聞（Google）
+    country: JP
+    lang: ja
+    type: rss
+    url: https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=ja&gl=JP&ceid=JP:ja
+    interval: 1800
+    categories: [macro, stock_us]
+
+  - id: yomiuri_top
+    name: 読売新聞（Google）
+    country: JP
+    lang: ja
+    type: rss
+    url: https://news.google.com/rss/search?q=site:yomiuri.co.jp&hl=ja&gl=JP&ceid=JP:ja
+    interval: 3600
+    categories: [macro, general]
+
+# ──────────────────── 🇬🇧 英国来源 ────────────────────
+
+gb_news:
+  - id: bbc_top
+    name: BBC News（头条）
+    country: GB
+    lang: en
+    type: rss
+    url: https://feeds.bbci.co.uk/news/rss.xml
+    interval: 1800
+    categories: [macro, general]
+
+  - id: bbc_business
+    name: BBC Business
+    country: GB
+    lang: en
+    type: rss
+    url: https://feeds.bbci.co.uk/news/business/rss.xml
+    interval: 1800
+    categories: [macro, stock_us, opportunity]
+
+  - id: guardian_world
+    name: The Guardian（国际）
+    country: GB
+    lang: en
+    type: rss
+    url: https://www.theguardian.com/world/rss
+    interval: 3600
+    categories: [macro, general]
+
+  - id: guardian_business
+    name: The Guardian（商业）
+    country: GB
+    lang: en
+    type: rss
+    url: https://www.theguardian.com/business/rss
+    interval: 3600
+    categories: [macro, stock_us, opportunity]
+
+  - id: ft_gnews
+    name: Financial Times（Google）
+    country: GB
+    lang: en
+    type: rss
+    url: https://news.google.com/rss/search?q=when:24h+site:ft.com&hl=en-GB&gl=GB&ceid=GB:en
+    interval: 1800
+    categories: [macro, stock_us, opportunity]
+
+# ──────────────────── 🇩🇪 德国来源 ────────────────────
+
+de_news:
+  - id: dw_de
+    name: Deutsche Welle（德语）
+    country: DE
+    lang: de
+    type: rss
+    url: https://news.google.com/rss/search?q=when:24h+site:dw.com&hl=de&gl=DE&ceid=DE:de
+    interval: 3600
+    categories: [macro, general]
+
+  - id: spiegel_top
+    name: Der Spiegel（头条）
+    country: DE
+    lang: de
+    type: rss
+    url: https://news.google.com/rss/search?q=when:24h+site:spiegel.de&hl=de&gl=DE&ceid=DE:de
+    interval: 3600
+    categories: [macro, general]
+
+  - id: handelsblatt_gnews
+    name: Handelsblatt（经济）
+    country: DE
+    lang: de
+    type: rss
+    url: https://news.google.com/rss/search?q=when:24h+site:handelsblatt.com&hl=de&gl=DE&ceid=DE:de
+    interval: 1800
+    categories: [macro, stock_us, opportunity]
+
+  - id: de_wirtschaft_gnews
+    name: Google新闻（德国财经）
+    country: DE
+    lang: de
+    type: rss
+    url: https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=de&gl=DE&ceid=DE:de
+    interval: 1800
+    categories: [macro, stock_us]
+
+# ──────────────────── 🇫🇷 法国来源 ────────────────────
+
+fr_news:
+  - id: lemonde_top
+    name: Le Monde（头条）
+    country: FR
+    lang: fr
+    type: rss
+    url: https://www.lemonde.fr/rss/une.xml
+    interval: 3600
+    categories: [macro, general]
+
+  - id: lefigaro_top
+    name: Le Figaro（头条）
+    country: FR
+    lang: fr
+    type: rss
+    url: https://news.google.com/rss/search?q=when:24h+site:lefigaro.fr&hl=fr&gl=FR&ceid=FR:fr
+    interval: 3600
+    categories: [macro, general]
+
+  - id: lesechos_top
+    name: Les Echos（财经）
+    country: FR
+    lang: fr
+    type: rss
+    url: https://news.google.com/rss/search?q=when:24h+site:lesechos.fr&hl=fr&gl=FR&ceid=FR:fr
+    interval: 1800
+    categories: [macro, stock_us, opportunity]
+
+  - id: france24_fr
+    name: France 24（法语）
+    country: FR
+    lang: fr
+    type: rss
+    url: https://www.france24.com/fr/rss
+    interval: 1800
+    categories: [macro, general]
+
+# ──────────────────── 🇪🇸 西班牙来源 ────────────────────
+
+es_news:
+  - id: elpais_top
+    name: El País（头条）
+    country: ES
+    lang: es
+    type: rss
+    url: https://feeds.elpais.com/mrss-s/pages/ep/site/elpais.com/portada
+    interval: 3600
+    categories: [macro, general]
+
+  - id: elmundo_top
+    name: El Mundo（头条）
+    country: ES
+    lang: es
+    type: rss
+    url: https://e00-elmundo.uecdn.es/elmundo/rss/portada.xml
+    interval: 3600
+    categories: [macro, general]
+
+  - id: expansion_mercados
+    name: Expansión（金融市场）
+    country: ES
+    lang: es
+    type: rss
+    url: https://e02-expansion.uecdn.es/rss/mercados.xml
+    interval: 1800
+    categories: [macro, stock_us, opportunity]
+
+  - id: es_economia_gnews
+    name: Google新闻（西班牙经济）
+    country: ES
+    lang: es
+    type: rss
+    url: https://news.google.com/rss/headlines/section/topic/BUSINESS?hl=es&gl=ES&ceid=ES:es
+    interval: 1800
+    categories: [macro, stock_us]
+
+# ──────────────────── 🌍 全球覆盖补充 ────────────────────
+
+global:
+  - id: gdelt_cn
+    name: GDELT（中国相关）
+    country: GLOBAL
+    lang: mixed
+    type: gdelt
+    gdelt_query: "China OR 中国"
+    gdelt_mode: ArtList
+    gdelt_timespan: 1w
+    interval: 900
+    categories: [macro, general]
+
+  - id: gdelt_finance
+    name: GDELT（全球财经）
+    country: GLOBAL
+    lang: mixed
+    type: gdelt
+    gdelt_query: "stock market OR economy OR investment"
+    gdelt_mode: ArtList
+    gdelt_timespan: 1w
+    interval: 900
+    categories: [stock_us, macro]
+
+  - id: gdelt_startup
+    name: GDELT（创业投资）
+    country: GLOBAL
+    lang: mixed
+    type: gdelt
+    gdelt_query: "startup OR venture capital OR IPO OR funding"
+    gdelt_mode: ArtList
+    gdelt_timespan: 1w
+    interval: 1800
+    categories: [startup, opportunity]
