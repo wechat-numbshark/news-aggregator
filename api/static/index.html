@@ -1869,5 +1869,41 @@ fetch(API+'/api/collect/status').then(r=>r.json()).then(r=>{
   }
 });
 </script>
+<script>
+(()=>{
+const dict={"刷新":{"en":"Refresh","ja":"更新"},"取消":{"en":"Cancel","ja":"キャンセル"},"保存":{"en":"Save","ja":"保存"},"加载中...":{"en":"Loading...","ja":"読み込み中..."},"全部":{"en":"All","ja":"すべて"},"状态":{"en":"Status","ja":"状態"},"操作":{"en":"Actions","ja":"操作"},"来源":{"en":"Source","ja":"ソース"},"类型":{"en":"Type","ja":"種類"},"地址":{"en":"Address","ja":"アドレス"},"频率":{"en":"Frequency","ja":"頻度"},"已翻译":{"en":"Translated","ja":"翻訳済み"},"中文":{"en":"Chinese","ja":"中国語"},"日本語":{"en":"Japanese","ja":"日本語"},"英语":{"en":"English","ja":"英語"},"今天":{"en":"Today","ja":"今日"},"时段":{"en":"Time slot","ja":"時間帯"},"集群":{"en":"Cluster","ja":"クラスタ"},"时长":{"en":"Duration","ja":"時間"},"最近操作":{"en":"Recent actions","ja":"最近の操作"},"知道了":{"en":"Got it","ja":"了解"},"加载中…":{"en":"Loading…","ja":"読み込み中…"},"全球新闻聚合":{"en":"Global News Aggregator","ja":"世界ニュース集約"},"🌐 新闻聚合":{"en":"🌐 News Aggregator","ja":"🌐 ニュース集約"},"📅 今日文章":{"en":"📅 Today","ja":"📅 今日の記事"},"📋 每日简报":{"en":"📋 Daily Briefing","ja":"📋 日次ダイジェスト"},"📰 全部文章":{"en":"📰 All Articles","ja":"📰 すべての記事"},"📡 新闻源管理":{"en":"📡 Sources","ja":"📡 ニュースソース"},"一键采集":{"en":"Collect Now","ja":"今すぐ収集"},"📅 选择日期":{"en":"📅 Select Date","ja":"📅 日付を選択"},"国家":{"en":"Country","ja":"国"},"🇨🇳 中国":{"en":"🇨🇳 China","ja":"🇨🇳 中国"},"🇺🇸 美国":{"en":"🇺🇸 United States","ja":"🇺🇸 アメリカ"},"🇯🇵 日本":{"en":"🇯🇵 Japan","ja":"🇯🇵 日本"},"🇬🇧 英国":{"en":"🇬🇧 United Kingdom","ja":"🇬🇧 イギリス"},"🇩🇪 德国":{"en":"🇩🇪 Germany","ja":"🇩🇪 ドイツ"},"🇫🇷 法国":{"en":"🇫🇷 France","ja":"🇫🇷 フランス"},"🇪🇸 西班牙":{"en":"🇪🇸 Spain","ja":"🇪🇸 スペイン"},"🌍 全球":{"en":"🌍 Global","ja":"🌍 世界"},"语言":{"en":"Language","ja":"言語"},"分类":{"en":"Category","ja":"カテゴリ"},"📈 A股":{"en":"📈 China Stocks","ja":"📈 中国株"},"📊 美股":{"en":"📊 US Stocks","ja":"📊 米国株"},"🚀 创业":{"en":"🚀 Startups","ja":"🚀 スタートアップ"},"💡 机会":{"en":"💡 Opportunities","ja":"💡 機会"},"🏛 宏观":{"en":"🏛 Macro","ja":"🏛 マクロ経済"},"💻 科技":{"en":"💻 Technology","ja":"💻 テクノロジー"},"📰 通用":{"en":"📰 General","ja":"📰 一般"},"翻译状态":{"en":"Translation","ja":"翻訳状態"},"✅ 已翻译":{"en":"✅ Translated","ja":"✅ 翻訳済み"},"⏳ 未翻译":{"en":"⏳ Untranslated","ja":"⏳ 未翻訳"},"生成简报":{"en":"Generate Briefing","ja":"ダイジェストを生成"},"推送飞书":{"en":"Send to Feishu","ja":"Feishu に送信"},"选择日期并点击「生成简报」，或点击上方历史日期查看已有简报":{"en":"Select a date and generate a briefing, or view an earlier one above","ja":"日付を選んでダイジェストを生成するか、上の過去の日付を開いてください"},"文章总数":{"en":"Total Articles","ja":"記事総数"},"最多来源国":{"en":"Top Source Country","ja":"最多ソース国"},"最多语言":{"en":"Top Language","ja":"最多の言語"},"请先点击「一键采集」获取文章数据":{"en":"Click Collect Now to get articles","ja":"「今すぐ収集」を押して記事を取得してください"},"一键测试所有":{"en":"Test All Sources","ja":"全ソースをテスト"},"文章数":{"en":"Articles","ja":"記事数"},"延迟":{"en":"Latency","ja":"遅延"},"搜索来源...":{"en":"Search sources...","ja":"ソースを検索..."},"🔍 搜索来源...":{"en":"🔍 Search sources...","ja":"🔍 ソースを検索..."},"日期":{"en":"Date","ja":"日付"},"标题":{"en":"Title","ja":"タイトル"},"原文":{"en":"Original","ja":"原文"},"阅读原文":{"en":"Read Original","ja":"元記事を読む"},"更多":{"en":"More","ja":"もっと見る"},"暂无文章":{"en":"No articles yet","ja":"記事はまだありません"},"暂无简报":{"en":"No briefing yet","ja":"ダイジェストはまだありません"},"采集中...":{"en":"Collecting...","ja":"収集中..."},"加载失败":{"en":"Failed to load","ja":"読み込みに失敗"},"测试来源":{"en":"Test source","ja":"ソースをテスト"}};
+const fragments={"加载失败:":{"en":"Failed to load:","ja":"読み込みに失敗:"},"前一天":{"en":"Previous day","ja":"前日"},"后一天":{"en":"Next day","ja":"翌日"},"跳转到指定日期":{"en":"Go to date","ja":"日付に移動"},"周四":{"en":"Thursday","ja":"木曜日"}};
+const key='opensource.language';
+let lang=localStorage.getItem(key)||(/^(ja)/i.test(navigator.language)?'ja':/^(en)/i.test(navigator.language)?'en':'zh');
+if(!['zh','en','ja'].includes(lang))lang='zh';
+const originals=new WeakMap(), last=new WeakMap();
+const clean=s=>s.replace(/\s+/g,' ').trim();
+let busy=false;
+function translate(){
+ if(busy)return;busy=true;
+ const walk=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let node;
+ while((node=walk.nextNode())){
+  if(node.parentElement?.closest('script,style,textarea,pre,code,#language-switch'))continue;
+  const now=node.nodeValue||'';if(!originals.has(node)||now!==last.get(node))originals.set(node,now);
+  const source=originals.get(node), entry=dict[clean(source)];
+  let rendered=entry?entry[lang]:clean(source);
+  if(!entry&&lang!=='zh'){for(const [from,to] of Object.entries(fragments))rendered=rendered.replaceAll(from,to[lang]);}
+  const wanted=lang==='zh'?source:(source.match(/^\s*/)[0]+rendered+source.match(/\s*$/)[0]);
+  if(now!==wanted)node.nodeValue=wanted;last.set(node,wanted);
+ }
+ document.querySelectorAll('[placeholder]').forEach(el=>{
+  const now=el.getAttribute('placeholder')||'';if(!el.dataset.i18nOriginal||now!==el.dataset.i18nLast)el.dataset.i18nOriginal=now;
+  const source=el.dataset.i18nOriginal, entry=dict[clean(source)];
+  const wanted=lang==='zh'||!entry?source:entry[lang];
+  if(now!==wanted)el.setAttribute('placeholder',wanted);el.dataset.i18nLast=wanted;
+ });
+ document.documentElement.lang=lang==='zh'?'zh-CN':lang;busy=false;
+}
+const select=document.createElement('select');select.id='language-switch';select.setAttribute('aria-label','Language / 语言 / 言語');select.innerHTML='<option value="zh">中文</option><option value="en">English</option><option value="ja">日本語</option>';select.value=lang;
+select.style.cssText='position:fixed;right:16px;bottom:16px;z-index:10000;padding:8px 12px;border-radius:8px;border:1px solid #888;background:#18202c;color:white;font:14px sans-serif;box-shadow:0 3px 15px #0005';
+select.addEventListener('change',()=>{lang=select.value;localStorage.setItem(key,lang);translate()});document.body.appendChild(select);
+new MutationObserver(()=>translate()).observe(document.body,{subtree:true,childList:true,characterData:true});translate();
+})();
+</script>
 </body>
 </html>

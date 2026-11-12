@@ -1,3 +1,5 @@
+**语言 / Language / 言語:** [简体中文](README.md) · [English](README.en.md) · [日本語](README.ja.md)
+
 # News Aggregator / 新闻聚合
 
 把公开 RSS、RSSHub、GDELT 和可选的 NYT API 文章汇总到本地，生成网页列表与 AI 简报；飞书 Webhook 推送是可选功能。默认只在本机开放网页。
@@ -17,3 +19,7 @@
 `python -m compileall -q .` 检查语法。现有项目没有完整自动化测试；线上来源和外部模型需各自验证。
 
 MIT License。本项目与新闻来源、飞书或模型服务商无隶属关系。
+
+## 语言
+
+网页右下角可切换中文、English、日本語；主导航、筛选和常用状态会随之切换。来自外部系统的标题、原文和诊断详情保留来源语言。
