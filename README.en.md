@@ -2,6 +2,24 @@
 
 **Language:** [简体中文](README.md) · English · [日本語](README.ja.md)
 
+**Follow several countries and topics without reopening twenty sites every morning.** Bring candidate sources into one filterable reading view, keep links to the originals, and see when a source fails. An optional briefing highlights what deserves a closer read; it never replaces the source article.
+
+### Three views · fictional illustrative data
+
+**Reading view:**
+
+![Fictional news feed preview](docs/demo-feed.png)
+
+**Daily briefing:**
+
+![Fictional briefing preview](docs/demo-briefing.png)
+
+**Source health:**
+
+![Fictional source status preview](docs/demo-sources.png)
+
+The [preview page](docs/demo.html) is an illustrative mockup. It does not show live collection or real news.
+
 Collect public RSS, RSSHub, GDELT, and optional NYT API articles into a local web view and optional AI briefing. Feishu webhook delivery is optional. The site binds to localhost by default.
 
 ## Quick start
