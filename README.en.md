@@ -4,6 +4,8 @@
 
 **Follow several countries and topics without reopening twenty sites every morning.** Bring candidate sources into one filterable reading view, keep links to the originals, and see when a source fails. An optional briefing highlights what deserves a closer read; it never replaces the source article.
 
+Need help with installation, a private deployment, or a customization that follows your workflow? Contact us at [buildwithneo.cn](https://buildwithneo.cn).
+
 ### Three views · fictional illustrative data
 
 **Reading view:**
